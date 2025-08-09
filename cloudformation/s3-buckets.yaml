@@ -1,0 +1,126 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'PROG8870 Final Project - S3 Buckets with PublicAccessBlockConfiguration and Versioning'
+
+Parameters:
+  BucketName1:
+    Type: String
+    Default: 'prog8870-cf-bucket-1-2024'
+    Description: 'Name for the first S3 bucket'
+  
+  BucketName2:
+    Type: String
+    Default: 'prog8870-cf-bucket-2-2024'
+    Description: 'Name for the second S3 bucket'
+  
+  BucketName3:
+    Type: String
+    Default: 'prog8870-cf-bucket-3-2024'
+    Description: 'Name for the third S3 bucket'
+
+Resources:
+  # S3 Bucket 1
+  S3Bucket1:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName1
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Project
+          Value: PROG8870-Final-Project
+        - Key: Environment
+          Value: Development
+        - Key: ManagedBy
+          Value: CloudFormation
+        - Key: Purpose
+          Value: Private Storage Bucket 1
+
+  # S3 Bucket 2
+  S3Bucket2:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName2
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Project
+          Value: PROG8870-Final-Project
+        - Key: Environment
+          Value: Development
+        - Key: ManagedBy
+          Value: CloudFormation
+        - Key: Purpose
+          Value: Private Storage Bucket 2
+
+  # S3 Bucket 3
+  S3Bucket3:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName3
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Project
+          Value: PROG8870-Final-Project
+        - Key: Environment
+          Value: Development
+        - Key: ManagedBy
+          Value: CloudFormation
+        - Key: Purpose
+          Value: Private Storage Bucket 3
+
+Outputs:
+  Bucket1Name:
+    Description: 'Name of the first S3 bucket'
+    Value: !Ref S3Bucket1
+    Export:
+      Name: !Sub '${AWS::StackName}-Bucket1Name'
+
+  Bucket1Arn:
+    Description: 'ARN of the first S3 bucket'
+    Value: !GetAtt S3Bucket1.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-Bucket1Arn'
+
+  Bucket2Name:
+    Description: 'Name of the second S3 bucket'
+    Value: !Ref S3Bucket2
+    Export:
+      Name: !Sub '${AWS::StackName}-Bucket2Name'
+
+  Bucket2Arn:
+    Description: 'ARN of the second S3 bucket'
+    Value: !GetAtt S3Bucket2.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-Bucket2Arn'
+
+  Bucket3Name:
+    Description: 'Name of the third S3 bucket'
+    Value: !Ref S3Bucket3
+    Export:
+      Name: !Sub '${AWS::StackName}-Bucket3Name'
+
+  Bucket3Arn:
+    Description: 'ARN of the third S3 bucket'
+    Value: !GetAtt S3Bucket3.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-Bucket3Arn'
+
+  StackStatus:
+    Description: 'Status of the CloudFormation stack'
+    Value: !Ref AWS::StackName

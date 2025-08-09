@@ -1,0 +1,268 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'PROG8870 Final Project - RDS MySQL Instance with Public Access'
+
+Parameters:
+  DBInstanceType:
+    Type: String
+    Default: 'db.t3.micro'
+    Description: 'RDS instance type'
+    AllowedValues:
+      - db.t3.micro
+      - db.t3.small
+      - db.t3.medium
+  
+  DBName:
+    Type: String
+    Default: 'prog8870db'
+    Description: 'Name of the database'
+  
+  DBUsername:
+    Type: String
+    Default: 'admin'
+    Description: 'Database master username'
+    NoEcho: true
+  
+  DBPassword:
+    Type: String
+    Default: 'PROG8870SecurePassword123!'
+    Description: 'Database master password'
+    NoEcho: true
+  
+  DBPort:
+    Type: Number
+    Default: 3306
+    Description: 'Database port'
+  
+  VpcCidr:
+    Type: String
+    Default: '10.0.0.0/16'
+    Description: 'CIDR block for VPC'
+  
+  PrivateSubnet1Cidr:
+    Type: String
+    Default: '10.0.3.0/24'
+    Description: 'CIDR block for first private subnet'
+  
+  PrivateSubnet2Cidr:
+    Type: String
+    Default: '10.0.4.0/24'
+    Description: 'CIDR block for second private subnet'
+  
+  AllowedDBCidr:
+    Type: String
+    Default: '0.0.0.0/0'
+    Description: 'CIDR block allowed for database access (WARNING: Change this for production)'
+
+Resources:
+  # VPC
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: PROG8870-CF-RDS-VPC
+        - Key: Project
+          Value: PROG8870-Final-Project
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # Internet Gateway
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: PROG8870-CF-RDS-IGW
+        - Key: Project
+          Value: PROG8870-Final-Project
+
+  # Attach Internet Gateway to VPC
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  # Private Subnet 1
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PrivateSubnet1Cidr
+      AvailabilityZone: !Select [0, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: PROG8870-CF-Private-Subnet-1
+        - Key: Project
+          Value: PROG8870-Final-Project
+
+  # Private Subnet 2
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PrivateSubnet2Cidr
+      AvailabilityZone: !Select [1, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: PROG8870-CF-Private-Subnet-2
+        - Key: Project
+          Value: PROG8870-Final-Project
+
+  # Route Table for Private Subnets
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: PROG8870-CF-Private-RouteTable
+        - Key: Project
+          Value: PROG8870-Final-Project
+
+  # Associate Private Subnet 1 with Route Table
+  PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      RouteTableId: !Ref PrivateRouteTable
+
+  # Associate Private Subnet 2 with Route Table
+  PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet2
+      RouteTableId: !Ref PrivateRouteTable
+
+  # Security Group for RDS Instance
+  RDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: prog8870-cf-rds-sg
+      GroupDescription: Security group for RDS instance
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref DBPort
+          ToPort: !Ref DBPort
+          CidrIp: !Ref AllowedDBCidr
+          Description: MySQL access from allowed CIDR
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+          Description: All outbound traffic
+      Tags:
+        - Key: Name
+          Value: PROG8870-CF-RDS-SecurityGroup
+        - Key: Project
+          Value: PROG8870-Final-Project
+
+  # DB Subnet Group
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for PROG8870 RDS instance
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      Tags:
+        - Key: Name
+          Value: PROG8870-CF-DB-SubnetGroup
+        - Key: Project
+          Value: PROG8870-Final-Project
+
+  # RDS Instance
+  RDSInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: prog8870-cf-db
+      DBInstanceClass: !Ref DBInstanceType
+      Engine: mysql
+      AllocatedStorage: 20
+      MaxAllocatedStorage: 100
+      StorageType: gp2
+      StorageEncrypted: true
+      
+      DBName: !Ref DBName
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      Port: !Ref DBPort
+      
+      VpcSecurityGroupIds:
+        - !Ref RDSSecurityGroup
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      
+      BackupRetentionPeriod: 7
+      
+      # Public access enabled for this project
+      PubliclyAccessible: true
+      
+      Tags:
+        - Key: Name
+          Value: PROG8870-CF-RDS-MySQL
+        - Key: Project
+          Value: PROG8870-Final-Project
+        - Key: ManagedBy
+          Value: CloudFormation
+
+Outputs:
+  VpcId:
+    Description: 'ID of the VPC'
+    Value: !Ref VPC
+    Export:
+      Name: !Sub '${AWS::StackName}-VpcId'
+
+  PrivateSubnet1Id:
+    Description: 'ID of the first private subnet'
+    Value: !Ref PrivateSubnet1
+    Export:
+      Name: !Sub '${AWS::StackName}-PrivateSubnet1Id'
+
+  PrivateSubnet2Id:
+    Description: 'ID of the second private subnet'
+    Value: !Ref PrivateSubnet2
+    Export:
+      Name: !Sub '${AWS::StackName}-PrivateSubnet2Id'
+
+  DBSubnetGroupName:
+    Description: 'Name of the DB subnet group'
+    Value: !Ref DBSubnetGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-DBSubnetGroupName'
+
+  RDSInstanceId:
+    Description: 'ID of the RDS instance'
+    Value: !Ref RDSInstance
+    Export:
+      Name: !Sub '${AWS::StackName}-RDSInstanceId'
+
+  RDSInstanceEndpoint:
+    Description: 'Endpoint of the RDS instance'
+    Value: !GetAtt RDSInstance.Endpoint.Address
+    Export:
+      Name: !Sub '${AWS::StackName}-RDSInstanceEndpoint'
+
+  RDSInstancePort:
+    Description: 'Port of the RDS instance'
+    Value: !GetAtt RDSInstance.Endpoint.Port
+    Export:
+      Name: !Sub '${AWS::StackName}-RDSInstancePort'
+
+  RDSSecurityGroupId:
+    Description: 'ID of the RDS security group'
+    Value: !Ref RDSSecurityGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-RDSSecurityGroupId'
+
+  DatabaseConnectionInfo:
+    Description: 'Database connection information'
+    Value: !Sub |
+      Database Name: ${DBName}
+      Username: ${DBUsername}
+      Endpoint: ${RDSInstance.Endpoint.Address}
+      Port: ${RDSInstance.Endpoint.Port}
+    Export:
+      Name: !Sub '${AWS::StackName}-DatabaseConnectionInfo'

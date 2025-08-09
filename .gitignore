@@ -1,0 +1,42 @@
+# Terraform files
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# SSH Keys (sensitive)
+terraform/ssh/prog8870-key
+terraform/ssh/prog8870-key.pub
+
+# Environment variables
+.env
+*.env
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Screenshots (optional - you may want to include these for documentation)
+# screenshots/
+
+# AWS credentials (if stored locally)
+.aws/
+credentials
