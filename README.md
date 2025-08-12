@@ -1,107 +1,123 @@
-# AWS Infrastructure Automation with Terraform and CloudFormation
+# PROG 8870 Final Project - AWS Infrastructure Automation
 
-## Project Overview
-This project demonstrates Infrastructure as Code (IaC) best practices using both Terraform and CloudFormation to deploy a scalable AWS infrastructure. The infrastructure includes S3 buckets, EC2 instances, VPC, and RDS database instances.
+## 🎯 Project Overview
+This project demonstrates Infrastructure as Code (IaC) best practices using both **Terraform** and **CloudFormation** to deploy a scalable AWS infrastructure including S3 buckets, EC2 instances, VPC, and RDS database instances.
 
-## Project Structure
+## 🚀 Quick Start with GitHub CodeSpaces
+
+### Option 1: GitHub CodeSpaces (Recommended)
+1. Click the green **"Code"** button on this repository
+2. Select **"Create codespace on main"**
+3. Wait for the environment to load (includes Terraform, AWS CLI, PowerShell)
+4. Follow the setup instructions below
+
+### Option 2: Local Development
+```bash
+git clone https://github.com/8999456115/Final-project_sahil_sorathiya_Cloud-Architectures-and-Infrastructure-as-Code.git
+cd Final-project_sahil_sorathiya_Cloud-Architectures-and-Infrastructure-as-Code
+```
+
+## 📁 Project Structure
 ```
 project/
 ├── terraform/
 │   ├── main.tf                 # Main Terraform configuration
 │   ├── provider.tf             # AWS provider configuration
 │   ├── variables.tf            # Variable definitions
-│   ├── terraform.tfvars        # Variable values (DO NOT commit sensitive data)
-│   ├── backend.tf              # Backend configuration
-│   └── outputs.tf              # Output definitions
+│   ├── terraform.tfvars        # Variable values
+│   ├── outputs.tf              # Output definitions
+│   └── ssh/                    # SSH keys directory
 ├── cloudformation/
 │   ├── s3-buckets.yaml         # S3 buckets CloudFormation template
 │   ├── ec2-instance.yaml       # EC2 instance CloudFormation template
 │   └── rds-instance.yaml       # RDS instance CloudFormation template
-├── screenshots/                 # Screenshots for documentation
+├── deploy-terraform.ps1        # PowerShell script for Terraform deployment
+├── deploy-cloudformation.ps1   # PowerShell script for CloudFormation deployment
+├── cleanup.ps1                 # PowerShell script for cleanup
 └── README.md                   # This file
 ```
 
-## Prerequisites
-- AWS CLI configured with appropriate credentials
-- Terraform installed (version >= 1.0)
-- Git for version control
+## 🔧 Setup Instructions
 
-## AWS Credentials Setup
-Configure your AWS credentials using one of these methods:
-
-### Method 1: AWS CLI
+### 1. AWS Credentials Setup
 ```bash
-aws configure
-```
-Enter your Access Key ID and Secret Access Key when prompted.
-
-### Method 2: Environment Variables
-```bash
+# Set your AWS credentials
 export AWS_ACCESS_KEY_ID="YOUR_AWS_ACCESS_KEY_ID"
 export AWS_SECRET_ACCESS_KEY="YOUR_AWS_SECRET_ACCESS_KEY"
 export AWS_DEFAULT_REGION="us-east-1"
 ```
 
-## Terraform Deployment
+### 2. Verify Setup
+```bash
+# Check AWS credentials
+aws sts get-caller-identity
 
-### 1. Initialize Terraform
+# Check Terraform version
+terraform version
+
+# Check AWS CLI version
+aws --version
+```
+
+## 🚀 Deployment Instructions
+
+### Option A: Automated Deployment (Recommended)
+
+#### Deploy Terraform Infrastructure
+```bash
+# For Windows PowerShell
+./deploy-terraform.ps1
+
+# For Linux/Mac Bash
+chmod +x deploy-terraform.sh
+./deploy-terraform.sh
+```
+
+#### Deploy CloudFormation Infrastructure
+```bash
+# For Windows PowerShell
+./deploy-cloudformation.ps1
+
+# For Linux/Mac Bash
+chmod +x deploy-cloudformation.sh
+./deploy-cloudformation.sh
+```
+
+### Option B: Manual Deployment
+
+#### Terraform Deployment
 ```bash
 cd terraform
 terraform init
-```
-
-### 2. Review the Plan
-```bash
 terraform plan
+terraform apply -auto-approve
+terraform output
 ```
 
-### 3. Apply the Configuration
+#### CloudFormation Deployment
 ```bash
-terraform apply
-```
+cd cloudformation
 
-### 4. Destroy Resources (when done)
-```bash
-terraform destroy
-```
-
-## CloudFormation Deployment
-
-### 1. Deploy S3 Buckets
-```bash
+# Deploy S3 buckets
 aws cloudformation create-stack \
-  --stack-name s3-buckets-stack \
-  --template-body file://cloudformation/s3-buckets.yaml \
+  --stack-name prog8870-s3-stack \
+  --template-body file://s3-buckets.yaml \
+  --capabilities CAPABILITY_IAM
+
+# Deploy EC2 instance
+aws cloudformation create-stack \
+  --stack-name prog8870-ec2-stack \
+  --template-body file://ec2-instance.yaml \
+  --capabilities CAPABILITY_IAM
+
+# Deploy RDS instance
+aws cloudformation create-stack \
+  --stack-name prog8870-rds-stack \
+  --template-body file://rds-instance.yaml \
   --capabilities CAPABILITY_IAM
 ```
 
-### 2. Deploy EC2 Instance
-```bash
-aws cloudformation create-stack \
-  --stack-name ec2-instance-stack \
-  --template-body file://cloudformation/ec2-instance.yaml \
-  --capabilities CAPABILITY_IAM
-```
-
-### 3. Deploy RDS Instance
-```bash
-aws cloudformation create-stack \
-  --stack-name rds-instance-stack \
-  --template-body file://cloudformation/rds-instance.yaml \
-  --capabilities CAPABILITY_IAM
-```
-
-### 4. Monitor Stack Status
-```bash
-aws cloudformation describe-stacks --stack-name <stack-name>
-```
-
-### 5. Delete Stacks (when done)
-```bash
-aws cloudformation delete-stack --stack-name <stack-name>
-```
-
-## Infrastructure Components
+## 📊 Infrastructure Components
 
 ### Terraform Resources
 - **S3 Buckets**: 4 private buckets with versioning enabled
@@ -114,21 +130,80 @@ aws cloudformation delete-stack --stack-name <stack-name>
 - **EC2 Instance**: t3.micro instance with networking components
 - **RDS Instance**: MySQL database with public access enabled
 
-## Security Features
+## 🔍 Verification Commands
+
+### Check All Resources
+```bash
+# Check S3 buckets
+aws s3 ls | grep prog8870
+
+# Check EC2 instances
+aws ec2 describe-instances --query "Reservations[*].Instances[*].[InstanceId,State.Name,PublicIpAddress]" --output table
+
+# Check RDS instances
+aws rds describe-db-instances --query "DBInstances[*].[DBInstanceIdentifier,DBInstanceClass,DBInstanceStatus]" --output table
+
+# Check CloudFormation stacks
+aws cloudformation describe-stacks --query "Stacks[*].[StackName,StackStatus]" --output table
+```
+
+## 🧹 Cleanup Instructions
+
+### Automated Cleanup
+```bash
+# For Windows PowerShell
+./cleanup.ps1
+
+# For Linux/Mac Bash
+chmod +x cleanup.sh
+./cleanup.sh
+```
+
+### Manual Cleanup
+```bash
+# Terraform cleanup
+cd terraform
+terraform destroy -auto-approve
+
+# CloudFormation cleanup
+aws cloudformation delete-stack --stack-name prog8870-s3-stack
+aws cloudformation delete-stack --stack-name prog8870-ec2-stack
+aws cloudformation delete-stack --stack-name prog8870-rds-stack
+```
+
+## ✅ Project Requirements Fulfilled
+
+### Requirement 1: S3 Bucket Setup ✅
+- **Terraform**: 4 Private S3 Buckets with versioning
+- **CloudFormation**: 3 Private S3 Buckets with PublicAccessBlockConfiguration
+
+### Requirement 2: VPC and EC2 Instance ✅
+- **Terraform**: EC2 in custom VPC with dynamic variables, public IP, SSH access
+- **CloudFormation**: EC2 with YAML config, networking components, public IP output
+
+### Requirement 3: RDS Instance Deployment ✅
+- **Terraform**: MySQL RDS with variables, DB Subnet Group
+- **CloudFormation**: RDS with YAML templates, public access, MySQL port 3306
+
+### Requirement 4: Dynamic Configuration ✅
+- **Terraform**: Variables files (variables.tf, terraform.tfvars)
+- **CloudFormation**: Parameters in YAML templates
+
+### Requirement 5: Backend/State Management ✅
+- **Terraform**: Local state file
+- **CloudFormation**: AWS CLI deployment
+
+### Requirement 6: GitHub Repository ✅
+- Complete repository with all required files
+- Documentation (README.md)
+
+## 🔒 Security Features
 - All S3 buckets are private with no public access
 - EC2 instances have restricted security groups
 - RDS instances are deployed in private subnets (Terraform) or with controlled public access (CloudFormation)
 - SSH access is limited to specific IP ranges
 
-## Best Practices Implemented
-- **Modularity**: Separate files for different resource types
-- **Variables**: Dynamic configuration using variables and tfvars
-- **Backend**: Local state management
-- **Documentation**: Comprehensive README and code comments
-- **Security**: Proper IAM roles and security groups
-- **Versioning**: S3 bucket versioning enabled
-
-## Troubleshooting
+## 🐛 Troubleshooting
 
 ### Common Issues
 1. **AWS Credentials**: Ensure credentials are properly configured
@@ -146,9 +221,12 @@ aws cloudformation list-stacks
 
 # Validate CloudFormation template
 aws cloudformation validate-template --template-body file://template.yaml
+
+# Check Terraform state
+terraform show
 ```
 
-## Screenshots Required
+## 📸 Screenshots Required
 Please capture screenshots of:
 1. S3 buckets created with versioning enabled
 2. EC2 instances with public IP addresses
@@ -157,7 +235,7 @@ Please capture screenshots of:
 5. CloudFormation stack creation output
 6. AWS Management Console showing all resources
 
-## Presentation Guidelines
+## 📋 Presentation Guidelines
 - Duration: 5-10 minutes
 - Cover code structure and implementation
 - Demonstrate live deployment
@@ -165,8 +243,17 @@ Please capture screenshots of:
 - Explain challenges and solutions
 - Highlight best practices
 
-## Contact
+## 👨‍💻 Author
+**Student:** Sahil Sorathiya  
+**Course:** PROG 8870 - Cloud Architectures and Infrastructure as Code  
+**Date:** December 2024
+
+## 📞 Contact
 For questions or issues, please refer to the project documentation or contact the development team.
 
-## License
+## 📄 License
 This project is created for educational purposes as part of PROG 8870 Final Project.
+
+---
+
+**🎉 Project Status: 100% Complete and Ready for Submission!**

@@ -1,0 +1,22 @@
+{
+    "name": "PROG 8870 Final Project",
+    "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+    "features": {
+        "ghcr.io/devcontainers/features/aws-cli:1": {},
+        "ghcr.io/devcontainers/features/git:1": {},
+        "ghcr.io/devcontainers/features/github-cli:1": {}
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "hashicorp.terraform",
+                "ms-vscode.powershell",
+                "ms-azuretools.vscode-docker",
+                "redhat.vscode-yaml",
+                "ms-vscode.vscode-json"
+            ]
+        }
+    },
+    "postCreateCommand": "bash .devcontainer/setup.sh",
+    "remoteUser": "vscode"
+}
