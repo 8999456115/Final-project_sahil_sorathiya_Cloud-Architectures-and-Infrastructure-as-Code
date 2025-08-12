@@ -246,13 +246,7 @@ Please capture screenshots of:
 ## 👨‍💻 Author
 **Student:** Sahil Sorathiya  
 **Course:** PROG 8870 - Cloud Architectures and Infrastructure as Code  
-**Date:** December 2024
-
-## 📞 Contact
-For questions or issues, please refer to the project documentation or contact the development team.
-
-## 📄 License
-This project is created for educational purposes as part of PROG 8870 Final Project.
+**Date:** 13 Aug 2024
 
 ---
 
